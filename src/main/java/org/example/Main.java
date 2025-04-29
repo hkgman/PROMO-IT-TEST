@@ -1,5 +1,8 @@
 package org.example;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Main {
@@ -14,7 +17,17 @@ public class Main {
                 String text = console.nextLine();
                 service.addNote(text);
             } else if (command.equals("#read")) {
-                service.readFromFile();
+                service.readFromFile(null);
+            } else if (command.equals("#search")) {
+                System.out.print("Введите дату по которой хотите осуществить поиск (формат : год-месяц-день): ");
+                String date = console.nextLine();
+                if (!date.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                    System.out.println("Неверный формат даты. Используйте формат: год-месяц-день (например, 2025-04-29)");
+                    continue;
+                }
+                service.readFromFile(date);
+            } else if (command.equals("#statistics")) {
+                service.getStatistic();
             } else if(command.equals("#exit")){
                 break;
             }else {
