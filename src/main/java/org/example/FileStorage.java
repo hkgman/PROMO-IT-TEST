@@ -3,83 +3,51 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-
 import org.example.models.Note;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class FileStorage {
     private static final String FILE_PATH = "notes.txt";
-    private static final String SECRET_KEY = System.getenv("MY_SECRET_KEY");
-    public static void writeInFile(Note note)
+
+    public void writeInFile(Note note)
     {
-        try{
-            SecretKey myDesKey = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
-            String str = note.serialize();
-            Cipher desCipher;
-            desCipher = Cipher.getInstance("AES");
-            desCipher.init(Cipher.ENCRYPT_MODE, myDesKey);
-            byte[] encryptedBytes = desCipher.doFinal(str.getBytes());
-            String encryptedStr = Base64.getEncoder().encodeToString(encryptedBytes);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-                writer.write(encryptedStr);
-                writer.newLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            String encryptedStr = CryptUtil.encryptText(note.serialize());
+            writer.write(encryptedStr);
+            writer.newLine();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void readFromFile(String dateSearch)
+    public void readFromFile(String dateSearch)
     {
-        try{
-            SecretKey myDesKey = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
-            Cipher desCipher;
-            desCipher = Cipher.getInstance("AES");
-            desCipher.init(Cipher.DECRYPT_MODE, myDesKey);
-            try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    byte[] encryptedBytes = Base64.getDecoder().decode(line);
-                    byte[] textDecrypted  = desCipher.doFinal(encryptedBytes);
-                    String text = new String(textDecrypted);
-                    if(text.isEmpty()){
-                        continue;
-                    }
-                    Note note = Note.deserialize(text);
-                    LocalDateTime date = note.getDateTime();
-                    if (dateSearch == null || date.toString().contains(dateSearch)) {
-                        System.out.println(note);
-                    }
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String text = CryptUtil.decryptText(line);
+                if (text.isEmpty()) {
+                    continue;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+                Note note = Note.deserialize(text);
+                LocalDateTime date = note.getDateTime();
+                if (dateSearch == null || date.toString().contains(dateSearch)) {
+                    System.out.println(note);
+                }
             }
         }catch (Exception e){
             e.printStackTrace();
         }
     }
-
-    public static void getStatistic(){
+    public void getStatistic(){
         try{
-            SecretKey myDesKey = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
-            Cipher desCipher;
-            desCipher = Cipher.getInstance("AES");
-            desCipher.init(Cipher.DECRYPT_MODE, myDesKey);
             try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
                 String line;
-                Integer allCount = 0;
-                Integer contentSizeAll = 0;
+                int allCount = 0;
+                int contentSizeAll = 0;
                 HashMap<LocalDate,Integer> activeDates = new HashMap<>();
                 while ((line = reader.readLine()) != null) {
-                    byte[] encryptedBytes = Base64.getDecoder().decode(line);
-                    byte[] textDecrypted  = desCipher.doFinal(encryptedBytes);
-                    String text = new String(textDecrypted);
-                    if(text.isEmpty()){
+                    String text = CryptUtil.decryptText(line);
+                    if (text.isEmpty()) {
                         continue;
                     }
                     Note note = Note.deserialize(text);

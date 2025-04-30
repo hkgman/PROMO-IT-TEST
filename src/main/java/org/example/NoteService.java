@@ -1,20 +1,21 @@
 package org.example;
-
 import org.example.models.Note;
 
-import java.time.LocalDateTime;
-
 public class NoteService {
+    private final FileStorage fileStorage;
 
+    public NoteService(FileStorage fileStorage) {
+        this.fileStorage = fileStorage;
+    }
     public void addNote(String text){
         Note note = new Note(text);
-        FileStorage.writeInFile(note);
+        fileStorage.writeInFile(note);
     }
     public void readFromFile(String dateTime){
-        FileStorage.readFromFile(dateTime);
+        fileStorage.readFromFile(dateTime);
     }
 
     public void getStatistic(){
-        FileStorage.getStatistic();
+        fileStorage.getStatistic();
     }
 }

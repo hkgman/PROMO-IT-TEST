@@ -1,13 +1,10 @@
 package org.example;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        NoteService service = new NoteService();
+        FileStorage fileStorage = new FileStorage();
+        NoteService service = new NoteService(fileStorage);
         Scanner console = new Scanner(System.in);
         while (true) {
             System.out.println("Введите команду:");
